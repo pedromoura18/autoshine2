@@ -9,8 +9,20 @@ import { ServiceCardItem } from "@/components/ui/service-card-item";
 import { useState } from "react";
 
 import { dayjs } from "@/lib/dayjs";
+import { useForm } from "react-hook-form";
+import z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 type Date = { year: number, month: number, day: number }
+
+const agendarStep3FormSchema = z.object({
+  fullname: z.email().nonempty("Nome completo é obrigatório"),
+  phone: z.string().nonempty("Telefone é obrigatório"),
+  model: z.string().nonempty("Modelo do carro é obrigatório"),
+  licensePlate: z.string().nonempty("Placa é obrigatória"),
+});
+
+type AgendarFormData = z.infer<typeof agendarStep3FormSchema>
 
 export default function Agendar() {
   const steps = useSteps({
@@ -19,6 +31,8 @@ export default function Agendar() {
   });
 
   const router = useRouter();
+
+  const { register, handleSubmit, formState: { errors } } = useForm({ resolver: zodResolver(agendarStep3FormSchema) });
 
   function handleGoToPrevStep() {
     if (steps.hasPrevStep) {
@@ -48,6 +62,10 @@ export default function Agendar() {
     return isPastDate || isSunday;
   }
 
+  function handleAgendar(data: AgendarFormData) {
+    console.log(steps.value, data);
+  }
+
   return (
     <VStack as="main" gap={0}>
       <VStack w="100%" maxW={1440} mx="auto" as="section" align="start" pt={28} pb={16} px={6}>
@@ -62,7 +80,7 @@ export default function Agendar() {
 
         {steps.isCompleted && <Text mb={8}>Completo!</Text>}
 
-        <Steps.RootProvider value={steps} gap={10}>
+        <Steps.RootProvider as="form" value={steps} onSubmit={handleSubmit(handleAgendar)} gap={10}>
           <Steps.List gap={4}>
             {items.map((step, index) => (
               <Steps.Item flex={1} key={index} index={index} title={step.title}>
@@ -178,28 +196,48 @@ export default function Agendar() {
                   <Heading as="h2" fontSize="2xl" fontWeight="semibold" color="yellow.300" mb={4}>Seus Dados</Heading>
 
                   <SimpleGrid columns={2} gap={4}>
-                    <Field.Root>
-                      <Field.Label color="yellow.300">Nome completo</Field.Label>
+                    <Field.Root invalid={!!errors.fullname} required>
+                      <Field.Label color="yellow.300">
+                        Nome completo
+                        <Field.RequiredIndicator />
+                      </Field.Label>
 
-                      <Input colorPalette="yellow" size="lg" rounded="lg" />
+                      <Input type="email" colorPalette="yellow" size="lg" rounded="lg" {...register("fullname")} />
+
+                      <Field.ErrorText>{errors.fullname?.message}</Field.ErrorText>
                     </Field.Root>
 
-                    <Field.Root>
-                      <Field.Label color="yellow.300">Telefone</Field.Label>
+                    <Field.Root invalid={!!errors.phone} required>
+                      <Field.Label color="yellow.300">
+                        Telefone
+                        <Field.RequiredIndicator />
+                      </Field.Label>
 
-                      <Input colorPalette="yellow" size="lg" rounded="lg" />
+                      <Input colorPalette="yellow" size="lg" rounded="lg" {...register("phone")} />
+
+                      <Field.ErrorText>{errors.phone?.message}</Field.ErrorText>
                     </Field.Root>
 
-                    <Field.Root>
-                      <Field.Label color="yellow.300">Modelo do carro</Field.Label>
+                    <Field.Root invalid={!!errors.model} required>
+                      <Field.Label color="yellow.300">
+                        Modelo do carro
+                        <Field.RequiredIndicator />
+                      </Field.Label>
 
-                      <Input colorPalette="yellow" size="lg" rounded="lg" />
+                      <Input colorPalette="yellow" size="lg" rounded="lg" {...register("model")} />
+
+                      <Field.ErrorText>{errors.model?.message}</Field.ErrorText>
                     </Field.Root>
 
-                    <Field.Root>
-                      <Field.Label color="yellow.300">Placa</Field.Label>
+                    <Field.Root invalid={!!errors.licensePlate} required>
+                      <Field.Label color="yellow.300">
+                        Placa
+                        <Field.RequiredIndicator />
+                      </Field.Label>
 
-                      <Input colorPalette="yellow" size="lg" rounded="lg" />
+                      <Input colorPalette="yellow" size="lg" rounded="lg" {...register("licensePlate")} />
+
+                      <Field.ErrorText>{errors.licensePlate?.message}</Field.ErrorText>
                     </Field.Root>
                   </SimpleGrid>
                 </motion.div>
@@ -207,12 +245,14 @@ export default function Agendar() {
             </Steps.Content>
           ))}
 
-          <Steps.CompletedContent>All steps are complete!</Steps.CompletedContent>
-
           <HStack w="100%" justify="end">
-            <Steps.NextTrigger asChild>
-              <Button size="lg" colorPalette="yellow" rounded="lg" disabled={!value}>Continuar</Button>
-            </Steps.NextTrigger>
+            {steps.value === 2 && <Button type="submit" size="lg" colorPalette="yellow" rounded="lg">Confirmar agendamento</Button>}
+
+            {steps.value !== 2 &&
+              <Steps.NextTrigger asChild>
+                <Button size="lg" colorPalette="yellow" rounded="lg" disabled={!value}>Continuar</Button>
+              </Steps.NextTrigger>
+            }
           </HStack>
         </Steps.RootProvider>
       </VStack>
