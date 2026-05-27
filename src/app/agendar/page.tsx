@@ -19,7 +19,8 @@ const agendarStep3FormSchema = z.object({
   fullname: z.email().nonempty("Nome completo é obrigatório"),
   phone: z.string().nonempty("Telefone é obrigatório"),
   model: z.string().nonempty("Modelo do carro é obrigatório"),
-  licensePlate: z.string().nonempty("Placa é obrigatória"),
+  licensePlate: z.string().nonempty("Placa é obrigatória")
+  .regex(/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/i,"Placa Inválida"),
 });
 
 type AgendarFormData = z.infer<typeof agendarStep3FormSchema>
@@ -235,7 +236,7 @@ export default function Agendar() {
                         <Field.RequiredIndicator />
                       </Field.Label>
 
-                      <Input colorPalette="yellow" size="lg" rounded="lg" {...register("licensePlate")} />
+                      <Input colorPalette="yellow" size="lg" rounded="lg" textTransform={"uppercase"} {...register("licensePlate")} />
 
                       <Field.ErrorText>{errors.licensePlate?.message}</Field.ErrorText>
                     </Field.Root>
